@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::ui::spawn_world_text;
 
 pub struct EnemyPlugin;
 
@@ -116,31 +115,11 @@ fn enemy_movement(
     }
 }
 
-
-fn damage_player(
-    commands: &mut Commands,
-    assets: &AssetServer,
-    enemy: &mut Enemy,
-    position: &Transform,
-    damage: f32,
-) {
-    spawn_world_text(
-        commands,
-        assets,
-        position.translation.truncate(),
-        &format!("{:?}", damage as i32),
-    );
-
-    enemy.health -= damage;
-}
-
 fn enemy_damage_player(
     enemies: Query<(&Collider, &GlobalTransform, &Enemy)>,
     mut player: Query<&mut Player>,
     rapier_context: Res<RapierContext>,
     time: Res<Time>,
-    assets: Res<AssetServer>,
-    audio: Res<Audio>,
 ) {
     for (collider, transform, enemy) in &enemies {
         rapier_context.intersections_with_shape(
@@ -151,12 +130,10 @@ fn enemy_damage_player(
             |entity| {
                 if let Ok(mut player) = player.get_mut(entity) {
                     player.health -= enemy.damage * time.delta_seconds();
-
                 }
                 true
             },
         );
-
     }
 }
 

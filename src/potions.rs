@@ -33,7 +33,7 @@ pub fn spawn_potions(
     let wave_buf = current_wave / spawn_manager.potion_waves.len();
 
     let wave = &mut spawn_manager.potion_waves[wave_index];
-    let size = wave.potion_count as i32;
+    let size = wave.potion_count;
 
     wave.next_potion_spawn.tick(time.delta());
 

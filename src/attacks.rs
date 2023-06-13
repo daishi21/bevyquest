@@ -1,11 +1,14 @@
 use crate::{prelude::*, ui::spawn_world_text};
-use std::{time::Duration,};
+use std::time::Duration;
 
 pub struct AttackPlugin;
 
 impl Plugin for AttackPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems((player_attack, blade_attack, blade_attack_facing).in_set(OnUpdate(GameState::GamePlay)));
+        app.add_systems(
+            (player_attack, blade_attack, blade_attack_facing)
+                .in_set(OnUpdate(GameState::GamePlay)),
+        );
     }
 }
 
@@ -86,7 +89,7 @@ pub fn spawn_blade(commands: &mut Commands, assets: &AssetServer) -> Entity {
             },
             GamePlayEntity,
             Name::new("Blade"),
-           Blade { timer, damage: 5.0 },
+            Blade { timer, damage: 5.0 },
             TwoFrameAnimation {
                 frame_1: assets.load("sprites/GuttyKreum_2.png"),
                 frame_2: assets.load("sprites/GuttyKreum_1.png"),
@@ -105,7 +108,7 @@ pub fn blade_attack_facing(
 ) {
     let player = player.single();
 
-    if let Ok((mut blade, mut sprite,)) = blade_query.get_single_mut() {
+    if let Ok((mut blade, mut sprite)) = blade_query.get_single_mut() {
         blade.translation = match player.facing {
             Facing::Left => {
                 sprite.flip_x = false;

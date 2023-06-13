@@ -185,15 +185,4 @@ pub mod prelude {
         pub potion_count: i32,
         pub to_spawn_potion: Potion,
     }
-
-    #[derive(Resource)]
-    pub struct EnemyCount {
-        pub value: u32,
-    }
-
-    impl Default for EnemyCount {
-        fn default() -> EnemyCount {
-            EnemyCount { value: 0 }
-        }
-    }
 }

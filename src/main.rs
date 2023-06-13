@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 //use bevy::app::AppExit;
 use bevy::input::common_conditions::input_toggle_active;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -19,11 +20,7 @@ fn main() {
                 })
                 .build(),
         )
-        
-        .add_plugin(
-            WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::I)),
-        )
-        
+        .add_plugin(WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::I)))
         .insert_resource(SpawnManager {
             global_time: Stopwatch::new(),
             waves: vec![
@@ -90,7 +87,7 @@ fn main() {
         .add_plugin(PotionsPlugin)
         .add_plugin(AttackPlugin)
         .add_plugin(AnimationPlugin)
-    .add_plugin(RapierDebugRenderPlugin::default())
+        .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(50.0))
         .insert_resource(RapierConfiguration {
             gravity: Vec2::ZERO,

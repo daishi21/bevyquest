@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 use crate::prelude::*;
 
 pub struct GameUiPlugin;
@@ -425,7 +426,7 @@ fn spawn_about_ui(mut commands: Commands, assets: Res<AssetServer>) {
     let main_title_text = TextBundle::from_section(
         "About BevyQuest",
         TextStyle {
-            font: font.clone(),
+            font,
             font_size: 40.0,
             color: Color::rgb(0.9, 0.9, 0.9),
         },
