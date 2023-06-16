@@ -116,7 +116,6 @@ fn enemy_movement(
     }
 }
 
-
 fn damage_player(
     commands: &mut Commands,
     assets: &AssetServer,
@@ -139,8 +138,8 @@ fn enemy_damage_player(
     mut player: Query<&mut Player>,
     rapier_context: Res<RapierContext>,
     time: Res<Time>,
-    assets: Res<AssetServer>,
-    audio: Res<Audio>,
+    _assets: Res<AssetServer>,
+    _audio: Res<Audio>,
 ) {
     for (collider, transform, enemy) in &enemies {
         rapier_context.intersections_with_shape(
@@ -151,12 +150,10 @@ fn enemy_damage_player(
             |entity| {
                 if let Ok(mut player) = player.get_mut(entity) {
                     player.health -= enemy.damage * time.delta_seconds();
-
                 }
                 true
             },
         );
-
     }
 }
 

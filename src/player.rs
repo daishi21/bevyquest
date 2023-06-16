@@ -7,7 +7,7 @@ impl Plugin for PlayerPlugin {
         app.add_system(spawn_player.in_schedule(OnEnter(GameState::GamePlay)))
             .add_systems(
                 (
-                    player_movement,
+                    player_movement.after(spawn_player),
                     player_game_over,
                     player_drink_potion.after(player_movement),
                 )
@@ -20,20 +20,23 @@ pub fn spawn_player(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
+    animaitons: Res<Animations>,
 ) {
     let _window: &Window = window_query.get_single().unwrap();
     let blade = spawn_blade(&mut commands, &asset_server);
 
+    let Some((texture_atlas, animation)) = animaitons.get(Animation::PlayerIdle) else {error!("Failed to find animation: Idle"); return;};
     commands
         .spawn((
-            SpriteBundle {
+            SpriteSheetBundle {
+                texture_atlas,
                 transform: Transform::from_xyz(0.0, 0.0, 2.0),
-                texture: asset_server.load("sprites/Player.png"),
-                sprite: Sprite {
+                sprite: TextureAtlasSprite {
+                    index: 0,
                     custom_size: Some(Vec2::new(80.0 * PIXEL_TO_WORLD, 80.0 * PIXEL_TO_WORLD)),
-                    ..default()
+                    ..Default::default()
                 },
-                ..default()
+                ..Default::default()
             },
             Player {
                 health: 100.0,
@@ -45,16 +48,18 @@ pub fn spawn_player(
             Name::new("Player"),
             Collider::capsule(Vec2::new(0.0, 0.55), Vec2::new(0.0, -0.50), 0.5),
             GamePlayEntity,
+            animation,
+            FrameTime(0.0),
         ))
         .add_child(blade);
 }
 
 pub fn player_movement(
-    mut player: Query<(&mut Transform, &mut Sprite, &mut Player)>,
+    mut player: Query<(&mut Transform, &mut Player)>,
     input: Res<Input<KeyCode>>,
     time: Res<Time>,
 ) {
-    let (mut transform, mut sprite, mut player) = player.single_mut();
+    let (mut transform, mut player) = player.single_mut();
     if input.pressed(KeyCode::W) {
         transform.translation.y += time.delta_seconds() * player.speed;
     }
@@ -63,12 +68,10 @@ pub fn player_movement(
     }
     if input.pressed(KeyCode::A) {
         transform.translation.x -= time.delta_seconds() * player.speed;
-        sprite.flip_x = true;
         player.facing = Facing::Left;
     }
     if input.pressed(KeyCode::D) {
         transform.translation.x += time.delta_seconds() * player.speed;
-        sprite.flip_x = false;
         player.facing = Facing::Right;
     }
     transform.translation.x = transform.translation.x.clamp(-175.0, 175.0);

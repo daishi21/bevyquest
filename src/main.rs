@@ -1,6 +1,6 @@
 //use bevy::app::AppExit;
-use bevy::input::common_conditions::input_toggle_active;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+//use bevy::input::common_conditions::input_toggle_active;
+//use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevyquest::prelude::*;
 
 fn main() {
@@ -19,11 +19,7 @@ fn main() {
                 })
                 .build(),
         )
-        
-        .add_plugin(
-            WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::I)),
-        )
-        
+        //.add_plugin(WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::I)))
         .insert_resource(SpawnManager {
             global_time: Stopwatch::new(),
             waves: vec![
@@ -81,6 +77,7 @@ fn main() {
             }],
         })
         .add_plugin(RngPlugin::default())
+        .add_plugin(EditorPlugin::default())
         .add_state::<GameState>()
         .add_state::<SimulationState>()
         .add_plugin(PlayerPlugin)
@@ -90,8 +87,10 @@ fn main() {
         .add_plugin(PotionsPlugin)
         .add_plugin(AttackPlugin)
         .add_plugin(AnimationPlugin)
-    .add_plugin(RapierDebugRenderPlugin::default())
+        //.add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(50.0))
+        .init_resource::<Animations>()
+        .register_type::<TextureAtlasSprite>()
         .insert_resource(RapierConfiguration {
             gravity: Vec2::ZERO,
             ..default()
