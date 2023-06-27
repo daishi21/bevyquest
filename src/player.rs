@@ -44,6 +44,7 @@ pub fn spawn_player(
                 speed: 5.0,
                 damage: 5.0,
                 facing: Facing::Right,
+                state: PlayerState::Idle,
             },
             Name::new("Player"),
             Collider::capsule(Vec2::new(0.0, 0.55), Vec2::new(0.0, -0.50), 0.5),
@@ -62,20 +63,23 @@ pub fn player_movement(
     let (mut transform, mut player) = player.single_mut();
     if input.pressed(KeyCode::W) {
         transform.translation.y += time.delta_seconds() * player.speed;
-    }
-    if input.pressed(KeyCode::S) {
+        player.facing = Facing::Up;
+        player.state = PlayerState::Moving;
+    } else if input.pressed(KeyCode::S) {
         transform.translation.y -= time.delta_seconds() * player.speed;
-    }
-    if input.pressed(KeyCode::A) {
+        player.facing = Facing::Down;
+        player.state = PlayerState::Moving;
+    } else if input.pressed(KeyCode::A) {
         transform.translation.x -= time.delta_seconds() * player.speed;
         player.facing = Facing::Left;
-    }
-    if input.pressed(KeyCode::D) {
+        player.state = PlayerState::Moving;
+    } else if input.pressed(KeyCode::D) {
         transform.translation.x += time.delta_seconds() * player.speed;
         player.facing = Facing::Right;
-    }
-    transform.translation.x = transform.translation.x.clamp(-175.0, 175.0);
-    transform.translation.y = transform.translation.y.clamp(-175.0, 175.0);
+        player.state = PlayerState::Moving;
+    } else {
+        player.state = PlayerState::Idle
+    };
 }
 
 fn player_game_over(

@@ -5,6 +5,7 @@ mod enemy;
 mod player;
 mod potions;
 mod ui;
+
 pub mod prelude {
 
     pub use crate::animation::AnimationPlugin;
@@ -35,6 +36,7 @@ pub mod prelude {
     pub const RENDER_WIDTH: f32 = 960.;
     pub const RENDER_HEIGHT: f32 = 540.;
     pub const PIXEL_TO_WORLD: f32 = 30. / 960.;
+    pub const POTION_SPAWN_TIME: f32 = 1.0;
 
     #[derive(States, PartialEq, Eq, Default, Debug, Clone, Hash)]
     pub enum GameState {
@@ -44,13 +46,6 @@ pub mod prelude {
         GameOver,
     }
 
-    #[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
-    pub enum SimulationState {
-        #[default]
-        Running,
-        Paused,
-    }
-
     #[derive(Component)]
     pub struct Player {
         pub speed: f32,
@@ -58,12 +53,7 @@ pub mod prelude {
         pub max_health: f32,
         pub damage: f32,
         pub facing: Facing,
-    }
-
-    //  #[derive(Component, Clone)]
-    pub enum Facing {
-        Left,
-        Right,
+        pub state: PlayerState,
     }
 
     #[derive(Component, Clone)]
@@ -72,7 +62,7 @@ pub mod prelude {
         pub health: f32,
         pub damage: f32,
         pub asset: String,
-        //       pub facing: Facing,
+        // pub facing: Facing,
     }
 
     #[derive(Component)]
@@ -150,8 +140,6 @@ pub mod prelude {
         pub position: Vec2,
     }
 
-    pub const POTION_SPAWN_TIME: f32 = 1.0;
-
     #[derive(Resource)]
     pub struct PotionSpawnTimer {
         pub timer: Timer,
@@ -201,6 +189,30 @@ pub mod prelude {
         PlayerDown,
         PlayerLeft,
         PlayerRight,
+        SlimeIdle,
+        SlimeUp,
+        SlimeDown,
+        SlimeRight,
+        SlimeLeft,
+        NagaIdle,
+        NagaRight,
+        NagaLeft,
+        NagaUp,
+        NagaDown,
+    }
+
+    #[derive(Component, Debug, Hash, PartialEq, Eq)]
+    pub enum Facing {
+        Left,
+        Right,
+        Up,
+        Down,
+    }
+
+    #[derive(Component, Debug, Hash, PartialEq, Eq)]
+    pub enum PlayerState {
+        Moving,
+        Idle,
     }
 
     #[derive(Component)]
@@ -239,7 +251,7 @@ pub mod prelude {
             world.resource_scope(|world, mut texture_atles: Mut<Assets<TextureAtlas>>| {
                 let asset_server = world.resource::<AssetServer>();
                 let idel_atlas = TextureAtlas::from_grid(
-                    asset_server.load("sprites/succubus_player.png"),
+                    asset_server.load("sprites/succubus/succubus_player.png"),
                     Vec2::new(69., 80.),
                     1,
                     1,
@@ -251,12 +263,12 @@ pub mod prelude {
                     texture_atles.add(idel_atlas),
                     SpriteAnimation {
                         len: 1,
-                        frame_time: 1. / 5.,
+                        frame_time: 1. / 10.,
                     },
                 );
 
                 let left_atlas = TextureAtlas::from_grid(
-                    asset_server.load("sprites/succubus_left.png"),
+                    asset_server.load("sprites/succubus/succubus_left.png"),
                     Vec2::new(69., 80.),
                     3,
                     1,
@@ -273,7 +285,7 @@ pub mod prelude {
                 );
 
                 let right_atlas = TextureAtlas::from_grid(
-                    asset_server.load("sprites/succubus_right.png"),
+                    asset_server.load("sprites/succubus/succubus_right.png"),
                     Vec2::new(69., 80.),
                     3,
                     1,
@@ -290,7 +302,7 @@ pub mod prelude {
                 );
 
                 let up_atlas = TextureAtlas::from_grid(
-                    asset_server.load("sprites/succubus_up.png"),
+                    asset_server.load("sprites/succubus/succubus_up.png"),
                     Vec2::new(69., 80.),
                     3,
                     1,
@@ -306,7 +318,7 @@ pub mod prelude {
                     },
                 );
                 let down_atlas = TextureAtlas::from_grid(
-                    asset_server.load("sprites/succubus_down.png"),
+                    asset_server.load("sprites/succubus/succubus_down.png"),
                     Vec2::new(69., 80.),
                     3,
                     1,
@@ -316,6 +328,167 @@ pub mod prelude {
                 map.add(
                     Animation::PlayerDown,
                     texture_atles.add(down_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+
+                let slimeup_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/slime/slime_up.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::SlimeUp,
+                    texture_atles.add(slimeup_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let slimedown_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/slime/slime_down.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::SlimeDown,
+                    texture_atles.add(slimedown_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let slimeleft_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/slime/slime_left.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::SlimeLeft,
+                    texture_atles.add(slimeleft_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let slimeright_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/slime/slime_up.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::SlimeRight,
+                    texture_atles.add(slimeright_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let slimeidle_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/slime/slime_down.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::SlimeIdle,
+                    texture_atles.add(slimeidle_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let nagaidle_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/naga/naga_down.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::NagaIdle,
+                    texture_atles.add(nagaidle_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let nagadown_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/naga/naga_down.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::NagaDown,
+                    texture_atles.add(nagadown_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let nagaleft_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/naga/naga_left.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::NagaLeft,
+                    texture_atles.add(nagaleft_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let nagaright_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/naga/naga_right.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::NagaRight,
+                    texture_atles.add(nagaright_atlas),
+                    SpriteAnimation {
+                        len: 3,
+                        frame_time: 1. / 10.,
+                    },
+                );
+                let nagaup_atlas = TextureAtlas::from_grid(
+                    asset_server.load("sprites/naga/naga_up.png"),
+                    Vec2::new(69., 80.),
+                    3,
+                    1,
+                    Some(Vec2::splat(2.0)),
+                    None,
+                );
+                map.add(
+                    Animation::NagaUp,
+                    texture_atles.add(nagaup_atlas),
                     SpriteAnimation {
                         len: 3,
                         frame_time: 1. / 10.,

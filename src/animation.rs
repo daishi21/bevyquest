@@ -5,7 +5,12 @@ pub struct AnimationPlugin;
 impl Plugin for AnimationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            (two_frame_animation, animate_sprite, change_player_animation)
+            (
+                two_frame_animation,
+                animate_sprite,
+                change_player_animation,
+                //change_slime_animation,
+            )
                 .after(spawn_player)
                 .in_set(OnUpdate(GameState::GamePlay)),
         );
@@ -59,19 +64,23 @@ pub fn change_player_animation(
         ),
         With<Player>,
     >,
+    player_face: Query<&Player>,
     input: Res<Input<KeyCode>>,
     animaitons: Res<Animations>,
 ) {
     let (mut atlas, mut animation, mut sprite) = player.single_mut();
+    let check_face = player_face.single();
 
-    let set = if input.any_pressed([KeyCode::D, KeyCode::Right]) {
+    let set = if check_face.facing == Facing::Right && check_face.state == PlayerState::Moving {
         Animation::PlayerRight
-    } else if input.any_pressed([KeyCode::W, KeyCode::Up]) {
+    } else if check_face.facing == Facing::Up && check_face.state == PlayerState::Moving {
         Animation::PlayerUp
-    } else if input.any_pressed([KeyCode::A, KeyCode::Left]) {
+    } else if check_face.facing == Facing::Left && check_face.state == PlayerState::Moving {
         Animation::PlayerLeft
-    } else if input.any_pressed([KeyCode::S, KeyCode::Down]) {
+    } else if check_face.facing == Facing::Down && check_face.state == PlayerState::Moving {
         Animation::PlayerDown
+    } else if check_face.state == PlayerState::Idle {
+        Animation::PlayerIdle
     } else {
         Animation::PlayerIdle
     };
@@ -81,3 +90,39 @@ pub fn change_player_animation(
     sprite.index %= new_animaiton.len;
     *animation = new_animaiton;
 }
+
+/*
+
+pub fn change_slime_animation(
+    mut enemy: Query<
+        (
+            &mut Handle<TextureAtlas>,
+            &mut SpriteAnimation,
+            &mut TextureAtlasSprite,
+        ),
+        With<Enemy>,
+    >,
+    enemy_face: Query<&Enemy>,
+    animaitons: Res<Animations>,
+) {
+    let (mut atlas, mut animation, mut sprite) = enemy.single_mut();
+    let check_face = enemy_face.single();
+
+    let set = if check_face.facing == Facing::Right {
+        Animation::SlimeRight
+    } else if check_face.facing == Facing::Up {
+        Animation::SlimeUp
+    } else if check_face.facing == Facing::Left {
+        Animation::SlimeLeft
+    } else if check_face.facing == Facing::Down {
+        Animation::SlimeDown
+    } else {
+        Animation::SlimeIdle
+    };
+
+    let Some((new_atlas, new_animaiton)) = animaitons.get(set) else {error!("No Animation Jump Loaded"); return;};
+    *atlas = new_atlas;
+    sprite.index %= new_animaiton.len;
+    *animation = new_animaiton;
+}
+*/

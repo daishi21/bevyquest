@@ -1,23 +1,15 @@
 //use bevy::app::AppExit;
 //use bevy::input::common_conditions::input_toggle_active;
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_embedded_assets::EmbeddedAssetPlugin;
 use bevyquest::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins(
             DefaultPlugins
-                .set(ImagePlugin::default_nearest())
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        title: "BevyQuest".into(),
-                        resolution: (WIDTH, HEIGHT).into(),
-                        resizable: false,
-                        ..default()
-                    }),
-                    ..default()
-                })
-                .build(),
+                .build()
+                .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
         )
         //.add_plugin(WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::I)))
         .insert_resource(SpawnManager {
@@ -79,7 +71,6 @@ fn main() {
         .add_plugin(RngPlugin::default())
         .add_plugin(EditorPlugin::default())
         .add_state::<GameState>()
-        .add_state::<SimulationState>()
         .add_plugin(PlayerPlugin)
         .add_plugin(EnemyPlugin)
         .add_plugin(GameCameraPlugin)
@@ -107,7 +98,7 @@ fn start_music(audio: Res<Audio>, assets: Res<AssetServer>) {
         assets.load("sounds/nightmare-on-imaginationland-8040.ogg"),
         PlaybackSettings {
             repeat: true,
-            volume: 0.5,
+            volume: 0.3,
             speed: 1.0,
         },
     );

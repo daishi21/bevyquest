@@ -78,7 +78,7 @@ fn spawn_enemy(
                 SpriteBundle {
                     texture: assets.load(&wave.to_spawn.asset),
                     sprite: Sprite {
-                        custom_size: Some(Vec2::new(63.0 * PIXEL_TO_WORLD, 113.0 * PIXEL_TO_WORLD)),
+                        custom_size: Some(Vec2::new(69.0 * PIXEL_TO_WORLD, 80.0 * PIXEL_TO_WORLD)),
                         ..default()
                     },
                     transform: Transform::from_translation(target_translation),

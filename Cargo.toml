@@ -20,6 +20,7 @@ bevy-inspector-egui = { version = "0.18.0", default-features = false, features =
 bevy_turborand = "0.5"
 bevy_easings = "0.10"
 bevy_editor_pls = "0.4.0"
+bevy_embedded_assets = "0.7.0"
 
 [profile.dev]
 opt-level = 1
